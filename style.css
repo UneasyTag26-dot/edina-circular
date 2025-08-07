@@ -1,0 +1,433 @@
+/*
+ * Base styling for the Edina Circular website.
+ * Uses CSS variables for colours and typography.  Designed to
+ * gracefully degrade on older browsers while remaining responsive.
+ */
+
+/* Colour palette */
+:root {
+    --dark-green: #2E7D32;
+    --green: #388E3C;
+    --light-green: #A5D6A7;
+    --accent: #FFB74D;
+    --background: #F5F5F5;
+    --white: #FFFFFF;
+    --text-dark: #263238;
+    --text-light: #546E7A;
+    --max-width: 1200px;
+    --radius: 8px;
+    --shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+/* Reset */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: var(--text-dark);
+    background-color: var(--background);
+    line-height: 1.6;
+    scroll-behavior: smooth;
+}
+
+a {
+    color: var(--green);
+    text-decoration: none;
+}
+a:hover {
+    text-decoration: underline;
+}
+
+.container {
+    max-width: var(--max-width);
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+header {
+    background-color: var(--white);
+    box-shadow: var(--shadow);
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 100;
+}
+
+.header-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 70px;
+}
+
+.logo {
+    height: 50px;
+    width: auto;
+}
+
+.nav {
+    display: flex;
+    align-items: center;
+}
+.nav-list {
+    list-style: none;
+    display: flex;
+    gap: 1.5rem;
+}
+.nav-list li a {
+    color: var(--text-dark);
+    font-weight: 500;
+    padding: 0.25rem 0;
+    transition: color 0.2s ease;
+}
+.nav-list li a:hover,
+.nav-list li a:focus {
+    color: var(--dark-green);
+}
+
+/* Mobile menu toggle */
+.menu-toggle {
+    display: none;
+    font-size: 1.8rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--dark-green);
+}
+
+/* Hero section */
+.hero {
+    position: relative;
+    height: 80vh;
+    min-height: 500px;
+    /* Use the downloaded hero image as the background */
+    background: url('hero.avif') center/cover no-repeat;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    margin-top: 70px; /* offset for fixed header */
+}
+.hero-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* Soft translucent overlay for readability over the photo */
+    background: rgba(255, 255, 255, 0.6);
+    z-index: 0;
+}
+.hero-content {
+    z-index: 1;
+    max-width: 700px;
+}
+.hero h1 {
+    font-size: 2.4rem;
+    color: var(--dark-green);
+    margin-bottom: 1rem;
+}
+.hero .tagline {
+    font-size: 1.2rem;
+    color: var(--text-light);
+    margin-bottom: 2rem;
+}
+.cta-button {
+    display: inline-block;
+    background-color: var(--dark-green);
+    color: var(--white);
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--radius);
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: background-color 0.3s ease;
+}
+.cta-button:hover,
+.cta-button:focus {
+    background-color: var(--green);
+}
+
+/* Generic section styles */
+.section {
+    padding: 4rem 0;
+}
+.section h2 {
+    font-size: 2rem;
+    color: var(--dark-green);
+    margin-bottom: 1rem;
+    text-align: center;
+}
+.section p {
+    max-width: 800px;
+    margin: 0.5rem auto;
+    color: var(--text-light);
+    font-size: 1rem;
+}
+
+/* Steps grid in How it works */
+.steps-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
+}
+.step-card {
+    background-color: var(--white);
+    padding: 1.5rem;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    text-align: center;
+    transition: transform 0.2s ease;
+}
+.step-card:hover {
+    transform: translateY(-4px);
+}
+.icon-circle {
+    width: 70px;
+    height: 70px;
+    margin: 0 auto 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.icon-circle svg {
+    width: 70px;
+    height: 70px;
+}
+.step-card h3 {
+    margin-bottom: 0.5rem;
+    color: var(--green);
+    font-size: 1.25rem;
+}
+.step-card p {
+    font-size: 0.95rem;
+    color: var(--text-light);
+}
+
+/* Form styling */
+.form-section .item-form {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem 2rem;
+    margin-top: 2rem;
+}
+.form-row {
+    display: flex;
+    flex-direction: column;
+}
+.form-row label {
+    margin-bottom: 0.3rem;
+    color: var(--text-dark);
+    font-weight: 500;
+}
+.form-row input[type="text"],
+.form-row select,
+.form-row textarea {
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: var(--radius);
+    font-size: 0.95rem;
+}
+.form-row textarea {
+    resize: vertical;
+}
+.submit-button {
+    grid-column: 1 / -1;
+    padding: 0.75rem 1.5rem;
+    background-color: var(--dark-green);
+    color: var(--white);
+    border: none;
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-size: 1rem;
+    text-transform: uppercase;
+    transition: background-color 0.2s ease;
+}
+.submit-button:hover,
+.submit-button:focus {
+    background-color: var(--green);
+}
+.success-message {
+    margin-top: 1rem;
+    color: var(--dark-green);
+    font-weight: 500;
+}
+
+/* Events section */
+.events-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+.event-card {
+    background-color: var(--white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 1.5rem;
+    transition: transform 0.2s ease;
+}
+.event-card:hover {
+    transform: translateY(-4px);
+}
+.event-card h4 {
+    margin-bottom: 0.3rem;
+    color: var(--green);
+    font-size: 1.2rem;
+}
+.event-card .event-date {
+    font-size: 0.9rem;
+    color: var(--accent);
+    margin-bottom: 0.5rem;
+}
+.event-card .event-desc {
+    font-size: 0.9rem;
+    color: var(--text-light);
+    margin-bottom: 0.75rem;
+}
+.event-button {
+    display: inline-block;
+    background-color: var(--dark-green);
+    color: var(--white);
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius);
+    font-size: 0.9rem;
+    transition: background-color 0.2s ease;
+}
+.event-button:hover,
+.event-button:focus {
+    background-color: var(--green);
+}
+
+/* Get involved section */
+.forms-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
+}
+.form-box {
+    background-color: var(--white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 1.5rem;
+}
+.form-box h3 {
+    text-align: center;
+    color: var(--green);
+    margin-bottom: 1rem;
+}
+
+/* Citations styling */
+.citations {
+    margin-top: 1rem;
+    font-size: 0.8rem;
+    color: var(--white);
+    text-align: center;
+}
+.citations a {
+    color: var(--white);
+    text-decoration: underline;
+}
+
+/* Cards list for items and requests */
+.cards-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+.card {
+    background-color: var(--white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 1.5rem;
+    position: relative;
+    transition: transform 0.2s ease;
+}
+.card:hover {
+    transform: translateY(-4px);
+}
+.card h4 {
+    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+    color: var(--green);
+}
+.card p {
+    font-size: 0.9rem;
+    color: var(--text-light);
+    margin-bottom: 0.5rem;
+}
+.card .chip {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    background-color: var(--light-green);
+    color: var(--dark-green);
+    border-radius: var(--radius);
+    font-size: 0.75rem;
+    margin-right: 0.5rem;
+}
+.match {
+    margin-top: 0.75rem;
+    font-size: 0.85rem;
+    color: var(--accent);
+    font-weight: 500;
+}
+
+/* Contact & footer */
+.contact-section p {
+    text-align: center;
+}
+footer {
+    background-color: var(--green);
+    color: var(--white);
+    padding: 2rem 0;
+}
+.footer-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    text-align: center;
+}
+.footer-nav {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+.footer-nav a {
+    color: var(--white);
+    font-size: 0.9rem;
+}
+.footer-nav a:hover {
+    text-decoration: underline;
+}
+
+/* Responsive behaviour */
+@media (max-width: 768px) {
+    .nav-list {
+        position: absolute;
+        top: 70px;
+        right: 0;
+        background-color: var(--white);
+        flex-direction: column;
+        width: 200px;
+        border-left: 1px solid #eee;
+        padding: 1rem;
+        transform: translateX(100%);
+        transition: transform 0.3s ease;
+        box-shadow: var(--shadow);
+    }
+    .nav-list.open {
+        transform: translateX(0);
+    }
+    .menu-toggle {
+        display: block;
+    }
+}

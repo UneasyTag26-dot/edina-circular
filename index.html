@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edina Circular | Building a Circular Community</title>
+    <link rel="stylesheet" href="style.css">
+    <!--
+        This site is built for the Edina Circular initiative.  It uses only
+        client‑side code and does not depend on any external frameworks or
+        libraries so it will work even without an internet connection.  The
+        responsive layout adapts gracefully across phones, tablets and
+        desktops.
+    -->
+</head>
+<body>
+    <header>
+        <div class="container header-inner">
+            <!-- Logo created programmatically (see logo.png) -->
+            <a href="#home" class="logo-link">
+                <img src="logo.png" alt="Edina Circular logo" class="logo">
+            </a>
+            <nav class="nav" id="nav">
+                <ul class="nav-list">
+                    <li><a href="#home">Home</a></li>
+                    <li><a href="#mission">Mission</a></li>
+                    <li><a href="#about">About&nbsp;Us</a></li>
+                    <li><a href="#how">How&nbsp;It&nbsp;Works</a></li>
+                    <li><a href="#share-borrow">Share&nbsp;&amp;&nbsp;Borrow</a></li>
+                    <li><a href="#contact">Contact</a></li>
+                </ul>
+            </nav>
+            <!-- Hamburger menu for small screens -->
+            <button class="menu-toggle" id="menu-toggle" aria-label="Toggle navigation">
+                &#9776;
+            </button>
+        </div>
+    </header>
+    <main>
+        <!-- Hero section introduces the program and invites participation -->
+        <section id="home" class="hero">
+            <div class="hero-overlay"></div>
+            <div class="container hero-content">
+                <h1>Building a Circular Community in Edina</h1>
+                <p class="tagline">
+                    Join your neighbors to reduce waste, share items and strengthen
+                    our community. Together we can close the loop on consumption.
+                </p>
+                <a href="#share-borrow" class="cta-button">Share&nbsp;an&nbsp;Item</a>
+            </div>
+        </section>
+
+        <!-- Mission section explains what Edina Circular does and why it matters -->
+        <section id="mission" class="section mission-section">
+            <div class="container">
+                <h2>Our Mission</h2>
+                <p>
+                    Edina Circular exists to fight waste and foster a stronger
+                    neighborhood. Inspired by the City of Edina’s commitment to
+                    community volunteerism — “Volunteer&nbsp;Edina is the City’s official
+                    volunteer program… we look for opportunities to engage
+                    volunteers in impactful ways and enhance community programs” — we
+                    apply these values to the circular economy.  We connect people
+                    who have items they no longer need or are willing to lend with
+                    neighbors looking for just such an item. By keeping
+                    resources circulating locally, we reduce landfill waste, promote
+                    sharing over buying and create real connections between
+                    residents.
+                </p>
+            </div>
+        </section>
+
+        <!-- About us section tells the story behind the project -->
+        <section id="about" class="section about-section">
+            <div class="container">
+                <h2>About Us</h2>
+                <p>
+                    I started Edina Circular because I’ve seen first‑hand how many
+                    perfectly good things end up in the trash.  Every garage sale
+                    ends with boxes headed to the dump; every move leaves piles of
+                    “still useful” items on the curb.  At the same time,
+                    neighbors often don’t own the tools, clothing or household
+                    essentials they need.  Rather than buying new and discarding
+                    old, why not share what we already have?  This program
+                    harnesses the generosity of our community to build a
+                    neighborhood where nothing goes to waste and everyone feels
+                    supported.
+                </p>
+                <p>
+                    Beyond the environmental impact, Edina Circular aims to
+                    reconnect people.  Offering a chainsaw or a dress to a
+                    neighbor isn’t just a transaction — it’s an opportunity to
+                    meet someone new and strengthen the social fabric.  When
+                    people feel connected and valued, everyone benefits.  That’s
+                    why we invite you to not only share your belongings but also
+                    your skills, your stories and your time.  Together we can
+                    make Edina a more resilient, vibrant and caring place.
+                </p>
+            </div>
+        </section>
+
+        <!-- How it works section provides an overview of the item exchange system -->
+        <section id="how" class="section how-section">
+            <div class="container">
+                <h2>How It Works</h2>
+                <div class="steps-grid">
+                    <div class="step-card">
+                        <div class="icon-circle">
+                            <!-- Simple SVG icon representing adding an item -->
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <circle cx="12" cy="12" r="10" fill="var(--light-green)"/>
+                                <rect x="11" y="6" width="2" height="12" fill="var(--dark-green)"/>
+                                <rect x="6" y="11" width="12" height="2" fill="var(--dark-green)"/>
+                            </svg>
+                        </div>
+                        <h3>Reuse &amp; Share</h3>
+                        <p>Organize swap meets and build a library of things where neighbors can lend and borrow household items, tools and equipment.</p>
+                    </div>
+                    <div class="step-card">
+                        <div class="icon-circle">
+                            <!-- Icon for browsing -->
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <circle cx="12" cy="12" r="10" fill="var(--light-green)"/>
+                                <path d="M4 10h16v2H4zM4 6h16v2H4zM4 14h10v2H4z" fill="var(--dark-green)"/>
+                            </svg>
+                        </div>
+                        <h3>Repair &amp; Skill&nbsp;Share</h3>
+                        <p>Host fix‑it clinics and workshops that teach repair skills, extending the life of electronics, clothing and appliances.</p>
+                    </div>
+                    <div class="step-card">
+                        <div class="icon-circle">
+                            <!-- Icon for matching/requesting -->
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <circle cx="12" cy="12" r="10" fill="var(--light-green)"/>
+                                <path d="M8 12l2-2 4 4 6-6 2 2-8 8z" fill="var(--dark-green)"/>
+                            </svg>
+                        </div>
+                        <h3>Recycling &amp; Composting</h3>
+                        <p>Promote responsible recycling and composting programs to keep materials out of the landfill and return nutrients to our soil.</p>
+                    </div>
+                    <div class="step-card">
+                        <div class="icon-circle">
+                            <!-- Icon for connect -->
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <circle cx="12" cy="12" r="10" fill="var(--light-green)"/>
+                                <path d="M6 12a6 6 0 1112 0 6 6 0 01-12 0zm6-4a4 4 0 100 8 4 4 0 000-8z" fill="var(--dark-green)"/>
+                            </svg>
+                        </div>
+                        <h3>Education &amp; Outreach</h3>
+                        <p>Engage the community through educational events and advocacy, raising awareness about sustainable living and the circular economy.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Share & Borrow section for adding items -->
+        <section id="share-borrow" class="section form-section">
+            <div class="container">
+                <h2>Share an Item</h2>
+                <p>Have something you no longer need or are willing to lend?  Add it to our catalog below.</p>
+                <form id="item-form" class="item-form">
+                    <div class="form-row">
+                        <label for="item-name">Item Name</label>
+                        <input type="text" id="item-name" name="item-name" placeholder="e.g. Cordless Drill" required>
+                    </div>
+                    <div class="form-row">
+                        <label for="item-category">Category</label>
+                        <select id="item-category" name="item-category" required>
+                            <option value="" disabled selected>Select category</option>
+                            <option value="Tools">Tools</option>
+                            <option value="Clothing">Clothing</option>
+                            <option value="Home">Home &amp; Kitchen</option>
+                            <option value="Outdoor">Outdoor &amp; Garden</option>
+                            <option value="Electronics">Electronics</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <label for="item-description">Description</label>
+                        <textarea id="item-description" name="item-description" rows="3" placeholder="Condition, brand, etc." required></textarea>
+                    </div>
+                    <div class="form-row">
+                        <label for="item-type">Availability</label>
+                        <select id="item-type" name="item-type" required>
+                            <option value="" disabled selected>Choose type</option>
+                            <option value="lend">Available to Borrow</option>
+                            <option value="donate">Free to Keep</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="submit-button">Add Item</button>
+                </form>
+                <div id="item-success" class="success-message" aria-live="polite"></div>
+            </div>
+        </section>
+
+        <!-- Section to display available items -->
+        <section id="items" class="section items-section">
+            <div class="container">
+                <h2>Available Items</h2>
+                <div id="items-list" class="cards-list">
+                    <!-- Items will be dynamically inserted here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Form for requesting items -->
+        <section id="request-item" class="section form-section">
+            <div class="container">
+                <h2>Request an Item</h2>
+                <p>Looking to borrow something specific?  Submit a request and we’ll match you with available items.</p>
+                <form id="request-form" class="item-form">
+                    <div class="form-row">
+                        <label for="request-name">Item Needed</label>
+                        <input type="text" id="request-name" name="request-name" placeholder="e.g. Ladder" required>
+                    </div>
+                    <div class="form-row">
+                        <label for="request-category">Category</label>
+                        <select id="request-category" name="request-category" required>
+                            <option value="" disabled selected>Select category</option>
+                            <option value="Tools">Tools</option>
+                            <option value="Clothing">Clothing</option>
+                            <option value="Home">Home &amp; Kitchen</option>
+                            <option value="Outdoor">Outdoor &amp; Garden</option>
+                            <option value="Electronics">Electronics</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <label for="request-duration">Duration</label>
+                        <select id="request-duration" name="request-duration" required>
+                            <option value="" disabled selected>How long do you need it?</option>
+                            <option value="1 day">1 Day</option>
+                            <option value="3 days">3 Days</option>
+                            <option value="1 week">1 Week</option>
+                            <option value="2 weeks">2 Weeks</option>
+                            <option value="1 month">1 Month</option>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <label for="request-description">Details</label>
+                        <textarea id="request-description" name="request-description" rows="3" placeholder="Reason for borrowing" required></textarea>
+                    </div>
+                    <button type="submit" class="submit-button">Submit Request</button>
+                </form>
+                <div id="request-success" class="success-message" aria-live="polite"></div>
+            </div>
+        </section>
+
+        <!-- Section displaying requests and AI match results -->
+        <section id="requests" class="section requests-section">
+            <div class="container">
+                <h2>Borrowing Requests</h2>
+                <div id="requests-list" class="cards-list">
+                    <!-- Request cards will appear here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Events section highlighting upcoming community activities -->
+        <section id="events" class="section events-section">
+            <div class="container">
+                <h2>Upcoming Events</h2>
+                <div class="events-grid">
+                    <div class="event-card">
+                        <h4>Community Swap Day</h4>
+                        <p class="event-date">September&nbsp;12,&nbsp;2025</p>
+                        <p class="event-desc">Bring your gently used household items and find something new! This swap event encourages reuse and reduces waste.</p>
+                        <a href="#get-involved" class="event-button">RSVP</a>
+                    </div>
+                    <div class="event-card">
+                        <h4>Fix‑It Clinic</h4>
+                        <p class="event-date">October&nbsp;17,&nbsp;2025</p>
+                        <p class="event-desc">Volunteer repair experts will help you mend broken electronics, small appliances and clothing. Learn new skills while saving items from the landfill.</p>
+                        <a href="#get-involved" class="event-button">Sign Up</a>
+                    </div>
+                    <div class="event-card">
+                        <h4>Winter Clothing Drive</h4>
+                        <p class="event-date">November&nbsp;8,&nbsp;2025</p>
+                        <p class="event-desc">Donate warm coats, hats and gloves to support neighbors in need. We'll distribute collected items to local shelters before winter arrives.</p>
+                        <a href="#get-involved" class="event-button">Donate</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Get Involved section for volunteering and donating goods -->
+        <section id="get-involved" class="section get-involved-section">
+            <div class="container">
+                <h2>Get Involved</h2>
+                <p>
+                    Whether you want to volunteer your time or donate goods, we appreciate
+                    your support. Complete one of the forms below and we’ll be in touch!
+                </p>
+                <div class="forms-grid">
+                    <div class="form-box">
+                        <h3>Volunteer Sign‑Up</h3>
+                        <form id="volunteer-form">
+                            <div class="form-row">
+                                <label for="vol-name">Name</label>
+                                <input type="text" id="vol-name" name="vol-name" required>
+                            </div>
+                            <div class="form-row">
+                                <label for="vol-email">Email</label>
+                                <input type="email" id="vol-email" name="vol-email" required>
+                            </div>
+                            <div class="form-row">
+                                <label for="vol-phone">Phone</label>
+                                <input type="tel" id="vol-phone" name="vol-phone" required>
+                            </div>
+                            <div class="form-row">
+                                <label for="vol-interests">Interests</label>
+                                <select id="vol-interests" name="vol-interests" required>
+                                    <option value="" disabled selected>Select interest</option>
+                                    <option value="Reuse events">Reuse events</option>
+                                    <option value="Repair clinics">Repair clinics</option>
+                                    <option value="Education outreach">Education &amp; outreach</option>
+                                    <option value="Composting initiatives">Composting initiatives</option>
+                                </select>
+                            </div>
+                            <div class="form-row">
+                                <label for="vol-message">Comments</label>
+                                <textarea id="vol-message" name="vol-message" rows="3" placeholder="Tell us how you'd like to help"></textarea>
+                            </div>
+                            <button type="submit" class="submit-button">Volunteer</button>
+                        </form>
+                        <div id="vol-success" class="success-message" aria-live="polite"></div>
+                    </div>
+                    <div class="form-box">
+                        <h3>Donate Goods</h3>
+                        <form id="donate-form">
+                            <div class="form-row">
+                                <label for="don-name">Name</label>
+                                <input type="text" id="don-name" name="don-name" required>
+                            </div>
+                            <div class="form-row">
+                                <label for="don-email">Email</label>
+                                <input type="email" id="don-email" name="don-email" required>
+                            </div>
+                            <div class="form-row">
+                                <label for="don-item">Item Description</label>
+                                <input type="text" id="don-item" name="don-item" required>
+                            </div>
+                            <div class="form-row">
+                                <label for="don-condition">Condition</label>
+                                <select id="don-condition" name="don-condition" required>
+                                    <option value="" disabled selected>Select condition</option>
+                                    <option value="New or like new">New or like new</option>
+                                    <option value="Good">Good</option>
+                                    <option value="Fair">Fair</option>
+                                </select>
+                            </div>
+                            <div class="form-row">
+                                <label for="don-message">Comments</label>
+                                <textarea id="don-message" name="don-message" rows="3" placeholder="Anything else we should know"></textarea>
+                            </div>
+                            <button type="submit" class="submit-button">Donate</button>
+                        </form>
+                        <div id="don-success" class="success-message" aria-live="polite"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact section with general information -->
+        <section id="contact" class="section contact-section">
+            <div class="container">
+                <h2>Get in Touch</h2>
+                <p>
+                    Want to volunteer, partner with us or have feedback?  We’d love
+                    to hear from you.  Send us an email at <a href="mailto:info@edinacircular.org">info@edinacircular.org</a>
+                    and we’ll respond promptly.  You can also find us at
+                    community events around Edina!
+                </p>
+            </div>
+        </section>
+    </main>
+    <footer>
+        <div class="container footer-inner">
+            <p>&copy; 2025 Edina Circular.  All rights reserved.</p>
+            <nav class="footer-nav">
+                <a href="#home">Home</a>
+                <a href="#mission">Mission</a>
+                <a href="#about">About</a>
+                <a href="#programs">Programs</a>
+                <a href="#share-borrow">Share &amp; Borrow</a>
+                <a href="#events">Events</a>
+                <a href="#get-involved">Get Involved</a>
+                <a href="#contact">Contact</a>
+            </nav>
+            <!-- Citation list -->
+            <div class="citations">
+                <ol>
+                    <li id="cite-1"><a href="【403644354987034†screenshot】">【403644354987034†screenshot】</a></li>
+                </ol>
+            </div>
+        </div>
+    </footer>
+    <script src="script.js"></script>
+</body>
+</html>
