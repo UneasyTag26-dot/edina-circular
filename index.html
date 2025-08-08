@@ -163,6 +163,15 @@
                         <label for="item-name">Item Name</label>
                         <input type="text" id="item-name" name="item-name" placeholder="e.g. Cordless Drill" required>
                     </div>
+                    <!-- New lender information fields -->
+                    <div class="form-row">
+                        <label for="lender-name">Your Name</label>
+                        <input type="text" id="lender-name" name="lender-name" placeholder="Who owns the item?" required>
+                    </div>
+                    <div class="form-row">
+                        <label for="lender-contact">Contact Info</label>
+                        <input type="text" id="lender-contact" name="lender-contact" placeholder="Email or phone number" required>
+                    </div>
                     <div class="form-row">
                         <label for="item-category">Category</label>
                         <select id="item-category" name="item-category" required>
@@ -396,5 +405,12 @@
         </div>
     </footer>
     <script src="script.js"></script>
+    <!-- Modal for displaying lender contact information -->
+    <div id="contact-modal" class="contact-modal" aria-hidden="true">
+        <div class="modal-content">
+            <button id="close-modal" class="modal-close" aria-label="Close contact information">&times;</button>
+            <p id="contact-info"></p>
+        </div>
+    </div>
 </body>
 </html>

@@ -61,10 +61,19 @@ document.addEventListener('DOMContentLoaded', () => {
             categoryChip.textContent = item.category;
             const desc = document.createElement('p');
             desc.textContent = item.description;
+            // Lender name displayed on the card
+            const lender = document.createElement('p');
+            lender.className = 'lender';
+            lender.textContent = `Lender: ${item.lenderName}`;
             card.appendChild(title);
             card.appendChild(typeChip);
             card.appendChild(categoryChip);
             card.appendChild(desc);
+            card.appendChild(lender);
+            // Add click handler to reveal lender contact in a modal
+            card.addEventListener('click', () => {
+                showContactModal(item.lenderName, item.lenderContact);
+            });
             itemsListEl.appendChild(card);
         });
     }
@@ -136,9 +145,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const category = document.getElementById('item-category').value;
         const description = document.getElementById('item-description').value.trim();
         const type = document.getElementById('item-type').value;
-        if (!name || !category || !description || !type) return;
+        // Read the new lender fields
+        const lenderName = document.getElementById('lender-name').value.trim();
+        const lenderContact = document.getElementById('lender-contact').value.trim();
+        // Validate required values
+        if (!name || !category || !description || !type || !lenderName || !lenderContact) return;
         const id = Date.now().toString();
-        items.push({ id, name, category, description, type });
+        // Include lender details when storing the item
+        items.push({ id, name, category, description, type, lenderName, lenderContact });
         saveData();
         renderItems();
         itemSuccess.textContent = 'Item added successfully!';
@@ -171,6 +185,33 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initial render
     renderItems();
     renderRequests();
+
+    // Modal logic for displaying lender contact information
+    const contactModal = document.getElementById('contact-modal');
+    const closeModalBtn = document.getElementById('close-modal');
+    const contactInfoEl = document.getElementById('contact-info');
+    /**
+     * Show a modal with the lender’s contact details. Called when an item card is clicked.
+     * @param {string} lenderName
+     * @param {string} lenderContact
+     */
+    function showContactModal(lenderName, lenderContact) {
+        if (!contactModal || !contactInfoEl) return;
+        contactInfoEl.textContent = `${lenderName} can be reached at: ${lenderContact}`;
+        contactModal.style.display = 'flex';
+    }
+    // Make the modal closing functionality accessible globally
+    if (closeModalBtn) {
+        closeModalBtn.addEventListener('click', () => {
+            contactModal.style.display = 'none';
+        });
+    }
+    // Hide modal when clicking outside the modal content
+    window.addEventListener('click', (evt) => {
+        if (evt.target === contactModal) {
+            contactModal.style.display = 'none';
+        }
+    });
 
     // Volunteer form handler
     const volForm = document.getElementById('volunteer-form');
