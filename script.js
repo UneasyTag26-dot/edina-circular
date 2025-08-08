@@ -51,6 +51,9 @@ document.addEventListener('DOMContentLoaded', () => {
         items.forEach((item) => {
             const card = document.createElement('div');
             card.className = 'card';
+            // Store data attributes for search filtering
+            card.dataset.name = item.name.toLowerCase();
+            card.dataset.category = item.category.toLowerCase();
             const title = document.createElement('h4');
             title.textContent = item.name;
             const typeChip = document.createElement('span');
@@ -185,6 +188,23 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initial render
     renderItems();
     renderRequests();
+    // Search input filtering for items
+    const searchInput = document.getElementById('search-input');
+    if (searchInput) {
+        searchInput.addEventListener('input', () => {
+            const term = searchInput.value.toLowerCase();
+            const cards = document.querySelectorAll('#items-list .card');
+            cards.forEach(card => {
+                const name = card.dataset.name || '';
+                const category = card.dataset.category || '';
+                if (name.includes(term) || category.includes(term)) {
+                    card.style.display = '';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+    }
 
     // Modal logic for displaying lender contact information
     const contactModal = document.getElementById('contact-modal');

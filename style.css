@@ -386,6 +386,23 @@ header {
     gap: 1.5rem;
     margin-top: 2rem;
 }
+
+/* Search bar above available items */
+#item-search {
+    margin-top: 1rem;
+    display: flex;
+    justify-content: center;
+}
+#item-search input {
+    width: 100%;
+    max-width: 400px;
+    padding: 0.5rem 1rem;
+    border: 2px solid var(--light-green);
+    border-radius: var(--radius);
+    font-size: 1rem;
+    background-color: var(--white);
+    color: var(--text-dark);
+}
 .card {
     background-color: var(--white);
     border-radius: var(--radius);
