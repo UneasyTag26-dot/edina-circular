@@ -186,6 +186,12 @@
                         <label for="item-description">Description</label>
                         <textarea id="item-description" name="item-description" rows="3" placeholder="Condition, brand, etc." required></textarea>
                     </div>
+                    <!-- Optional photo upload for an item -->
+                    <div class="form-row">
+                        <label for="item-photo">Item Photo (optional)</label>
+                        <input type="file" id="item-photo" accept="image/*">
+                        <small>Tip: add a clear, horizontal photo. It will be compressed automatically.</small>
+                    </div>
                     <div class="form-row">
                         <label for="item-type">Availability</label>
                         <select id="item-type" name="item-type" required>
@@ -204,9 +210,21 @@
         <section id="items" class="section items-section">
             <div class="container">
                 <h2>Available Items</h2>
-                <!-- Search bar to filter items by name or category -->
-                <div id="item-search">
-                    <input type="text" id="search-input" placeholder="Search items by name or category...">
+                <!-- Metrics banner summarising the state of the catalogue -->
+                <div id="metrics" class="metrics">
+                    <div><strong id="metric-total">0</strong><span>Total items</span></div>
+                    <div><strong id="metric-lend">0</strong><span>Available to borrow</span></div>
+                    <div><strong id="metric-give">0</strong><span>Free to keep</span></div>
+                    <div><strong id="metric-requests">0</strong><span>Requests</span></div>
+                    <div><strong id="metric-matches">0</strong><span>Potential matches</span></div>
+                </div>
+                <!-- Toolbar with search and admin toggle -->
+                <div class="items-toolbar">
+                    <div id="item-search">
+                        <input type="text" id="search-input" placeholder="Search by name, description, lender, category…">
+                    </div>
+                    <!-- Admin toggle button; shows lock/unlock state and only allows deletion when in admin mode -->
+                    <button id="admin-toggle" class="admin-button" title="Toggle Admin Mode">🔒 Admin</button>
                 </div>
                 <div id="items-list" class="cards-list">
                     <!-- Items will be dynamically inserted here -->

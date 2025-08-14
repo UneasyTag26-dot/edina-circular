@@ -17,6 +17,56 @@ document.addEventListener('DOMContentLoaded', () => {
     let volunteers = [];
     let donations = [];
 
+    // --- CONFIGURATION ---
+    // SHA‑256 hash of a secret phrase used to toggle admin mode.  Change this to your own hash by
+    // computing the hash of your chosen passphrase (see README or prompt for instructions).
+    const ADMIN_PASSPHRASE_HASH = '00402c62f5e4f5e6f8f0c50f675d657d9cf7b4812908aad4a3b16002cbb05394';
+    // Tracks whether admin mode is active; when true, delete buttons are visible and deletion is allowed
+    let adminMode = false;
+
+    /**
+     * Compute the SHA‑256 hash of a string and return a hex string.  Uses Web Crypto API.
+     * @param {string} text
+     * @returns {Promise<string>}
+     */
+    const toHash = async (text) => {
+        const enc = new TextEncoder().encode(text);
+        const buf = await crypto.subtle.digest('SHA-256', enc);
+        return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
+    };
+
+    /**
+     * Compress an image file to a data URL.  This resizes the image to a maximum dimension
+     * and reduces quality to save space.  Returns null if no file is provided.
+     * @param {File|null} file
+     * @param {number} maxDim
+     * @param {number} quality
+     * @returns {Promise<string|null>}
+     */
+    async function fileToDataUrlCompressed(file, maxDim = 1200, quality = 0.8) {
+        if (!file) return null;
+        return new Promise((resolve, reject) => {
+            const img = document.createElement('img');
+            const fr = new FileReader();
+            fr.onload = () => {
+                img.src = fr.result;
+                img.onload = () => {
+                    const { width, height } = img;
+                    const scale = Math.min(maxDim / Math.max(width, height), 1);
+                    const canvas = document.createElement('canvas');
+                    canvas.width = Math.round(width * scale);
+                    canvas.height = Math.round(height * scale);
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    const dataUrl = canvas.toDataURL('image/jpeg', quality);
+                    resolve(dataUrl);
+                };
+            };
+            fr.onerror = (err) => reject(err);
+            fr.readAsDataURL(file);
+        });
+    }
+
     try {
         const savedItems = localStorage.getItem('ec_items');
         const savedReq = localStorage.getItem('ec_requests');
@@ -48,12 +98,24 @@ document.addEventListener('DOMContentLoaded', () => {
             itemsListEl.appendChild(empty);
             return;
         }
-        items.forEach((item) => {
+        items.forEach((item, idx) => {
             const card = document.createElement('div');
             card.className = 'card';
-            // Store data attributes for search filtering
-            card.dataset.name = item.name.toLowerCase();
-            card.dataset.category = item.category.toLowerCase();
+            // Data attributes for multi‑field search
+            card.dataset.name = (item.name || '').toLowerCase();
+            card.dataset.category = (item.category || '').toLowerCase();
+            card.dataset.type = (item.type || '').toLowerCase();
+            card.dataset.lender = (item.lenderName || '').toLowerCase();
+            card.dataset.description = (item.description || '').toLowerCase();
+            // Optional photo thumbnail
+            if (item.photoDataUrl) {
+                const img = document.createElement('img');
+                img.className = 'thumb';
+                img.src = item.photoDataUrl;
+                img.alt = `${item.name} photo`;
+                card.appendChild(img);
+            }
+            // Title and chips
             const title = document.createElement('h4');
             title.textContent = item.name;
             const typeChip = document.createElement('span');
@@ -64,7 +126,6 @@ document.addEventListener('DOMContentLoaded', () => {
             categoryChip.textContent = item.category;
             const desc = document.createElement('p');
             desc.textContent = item.description;
-            // Lender name displayed on the card
             const lender = document.createElement('p');
             lender.className = 'lender';
             lender.textContent = `Lender: ${item.lenderName}`;
@@ -73,8 +134,27 @@ document.addEventListener('DOMContentLoaded', () => {
             card.appendChild(categoryChip);
             card.appendChild(desc);
             card.appendChild(lender);
-            // Add click handler to reveal lender contact in a modal
-            card.addEventListener('click', () => {
+            // Admin delete actions
+            const adminRow = document.createElement('div');
+            adminRow.className = 'admin-actions';
+            const delBtn = document.createElement('button');
+            delBtn.className = 'delete-btn';
+            delBtn.textContent = 'Delete';
+            delBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (!adminMode) return;
+                if (confirm(`Delete "${item.name}"? This cannot be undone.`)) {
+                    items.splice(idx, 1);
+                    saveData();
+                    renderItems();
+                    updateMetrics();
+                }
+            });
+            adminRow.appendChild(delBtn);
+            card.appendChild(adminRow);
+            // Clicking on the card shows contact modal; ignore clicks on delete button
+            card.addEventListener('click', (evt) => {
+                if (evt.target.closest('.delete-btn')) return;
                 showContactModal(item.lenderName, item.lenderContact);
             });
             itemsListEl.appendChild(card);
@@ -142,24 +222,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Event handlers
     const itemForm = document.getElementById('item-form');
-    itemForm.addEventListener('submit', (e) => {
+    itemForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const name = document.getElementById('item-name').value.trim();
         const category = document.getElementById('item-category').value;
         const description = document.getElementById('item-description').value.trim();
         const type = document.getElementById('item-type').value;
-        // Read the new lender fields
         const lenderName = document.getElementById('lender-name').value.trim();
         const lenderContact = document.getElementById('lender-contact').value.trim();
-        // Validate required values
+        const photoFile = document.getElementById('item-photo')?.files?.[0] || null;
         if (!name || !category || !description || !type || !lenderName || !lenderContact) return;
+        let photoDataUrl = null;
+        try {
+            photoDataUrl = await fileToDataUrlCompressed(photoFile);
+        } catch (err) {
+            console.warn('Photo compression failed', err);
+        }
         const id = Date.now().toString();
-        // Include lender details when storing the item
-        items.push({ id, name, category, description, type, lenderName, lenderContact });
+        items.push({ id, name, category, description, type, lenderName, lenderContact, photoDataUrl, createdAt: Date.now() });
         saveData();
         renderItems();
+        updateMetrics();
         itemSuccess.textContent = 'Item added successfully!';
-        // Clear form
         itemForm.reset();
         setTimeout(() => { itemSuccess.textContent = ''; }, 3000);
     });
@@ -180,6 +264,7 @@ document.addEventListener('DOMContentLoaded', () => {
         requests.push(reqObj);
         saveData();
         renderRequests();
+        updateMetrics();
         requestSuccess.textContent = 'Request submitted!';
         requestForm.reset();
         setTimeout(() => { requestSuccess.textContent = ''; }, 3000);
@@ -188,22 +273,99 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initial render
     renderItems();
     renderRequests();
-    // Search input filtering for items
+    updateMetrics();
+
+    // Improved search filtering across multiple fields with debounce
     const searchInput = document.getElementById('search-input');
+    function filterCards() {
+        const q = (searchInput?.value || '').trim().toLowerCase();
+        const cards = itemsListEl.querySelectorAll('.card');
+        cards.forEach(card => {
+            const haystack = [
+                card.dataset.name,
+                card.dataset.category,
+                card.dataset.type,
+                card.dataset.lender,
+                card.dataset.description
+            ].join(' ');
+            card.style.display = haystack.includes(q) ? '' : 'none';
+        });
+    }
+    let searchTimer = null;
     if (searchInput) {
         searchInput.addEventListener('input', () => {
-            const term = searchInput.value.toLowerCase();
-            const cards = document.querySelectorAll('#items-list .card');
-            cards.forEach(card => {
-                const name = card.dataset.name || '';
-                const category = card.dataset.category || '';
-                if (name.includes(term) || category.includes(term)) {
-                    card.style.display = '';
-                } else {
-                    card.style.display = 'none';
-                }
-            });
+            clearTimeout(searchTimer);
+            searchTimer = setTimeout(filterCards, 180);
         });
+    }
+
+    // Admin mode toggle
+    const adminToggle = document.getElementById('admin-toggle');
+    /**
+     * Refresh UI elements when admin mode changes.
+     */
+    function refreshAdminUI() {
+        document.body.classList.toggle('admin-mode', adminMode);
+        if (adminToggle) {
+            adminToggle.classList.toggle('admin-on', adminMode);
+            adminToggle.textContent = adminMode ? '🔓 Admin' : '🔒 Admin';
+        }
+    }
+    // Restore admin mode from previous session if stored
+    (function restoreAdmin() {
+        if (localStorage.getItem('ec_admin') === '1') {
+            adminMode = true;
+            refreshAdminUI();
+        }
+    })();
+    if (adminToggle) {
+        adminToggle.addEventListener('click', async () => {
+            if (adminMode) {
+                adminMode = false;
+                localStorage.removeItem('ec_admin');
+                refreshAdminUI();
+                return;
+            }
+            const pass = prompt('Enter admin passphrase:');
+            if (!pass) return;
+            const h = await toHash(pass);
+            if (h === ADMIN_PASSPHRASE_HASH) {
+                adminMode = true;
+                localStorage.setItem('ec_admin', '1');
+                refreshAdminUI();
+            } else {
+                alert('Incorrect passphrase.');
+            }
+        });
+    }
+
+    /**
+     * Update the metrics banner with counts of items, types and requests.
+     */
+    function updateMetrics() {
+        const total = items.length;
+        const lendCount = items.filter(i => i.type === 'lend').length;
+        const giveCount = items.filter(i => i.type !== 'lend').length;
+        const reqCount = requests.length;
+        // Count number of requests with at least one match
+        const matchCount = requests.reduce((acc, r) => {
+            const q = (r.name || '').toLowerCase();
+            const cat = (r.category || '').toLowerCase();
+            const m = items.filter(i =>
+                (i.name || '').toLowerCase().includes(q) ||
+                (i.category || '').toLowerCase() === cat
+            ).length;
+            return acc + (m > 0 ? 1 : 0);
+        }, 0);
+        const setMetric = (id, value) => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = value;
+        };
+        setMetric('metric-total', total);
+        setMetric('metric-lend', lendCount);
+        setMetric('metric-give', giveCount);
+        setMetric('metric-requests', reqCount);
+        setMetric('metric-matches', matchCount);
     }
 
     // Modal logic for displaying lender contact information
