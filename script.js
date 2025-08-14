@@ -20,7 +20,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- CONFIGURATION ---
     // SHA‑256 hash of a secret phrase used to toggle admin mode.  Change this to your own hash by
     // computing the hash of your chosen passphrase (see README or prompt for instructions).
-    const ADMIN_PASSPHRASE_HASH = '00402c62f5e4f5e6f8f0c50f675d657d9cf7b4812908aad4a3b16002cbb05394';
+    // Admin passphrase hash for "admin123".  To change the passphrase,
+    // replace this value with the SHA‑256 hash of your desired phrase.  The
+    // current hash corresponds to the passphrase "admin123".
+    const ADMIN_PASSPHRASE_HASH = '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9';
     // Tracks whether admin mode is active; when true, delete buttons are visible and deletion is allowed
     let adminMode = false;
 
@@ -159,6 +162,10 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             itemsListEl.appendChild(card);
         });
+        // Reapply current search filter after items are rendered.  Without this call,
+        // newly added or removed items would always show regardless of the current
+        // search query.  This ensures the list respects the active filter string.
+        filterCards();
     }
 
     function renderRequests() {
