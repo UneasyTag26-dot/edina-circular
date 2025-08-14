@@ -154,6 +154,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
             adminRow.appendChild(delBtn);
+            // Show or hide the admin actions row based on admin mode.  Without this, the
+            // delete button could appear even when adminMode is false if the CSS fails to hide it.
+            adminRow.style.display = adminMode ? 'block' : 'none';
             card.appendChild(adminRow);
             // Clicking on the card shows contact modal; ignore clicks on delete button
             card.addEventListener('click', (evt) => {
@@ -327,12 +330,16 @@ document.addEventListener('DOMContentLoaded', () => {
     })();
     if (adminToggle) {
         adminToggle.addEventListener('click', async () => {
+            // Toggling admin mode off
             if (adminMode) {
                 adminMode = false;
                 localStorage.removeItem('ec_admin');
                 refreshAdminUI();
+                // Re-render items so that admin delete buttons hide immediately
+                renderItems();
                 return;
             }
+            // Prompt for passphrase when turning admin mode on
             const pass = prompt('Enter admin passphrase:');
             if (!pass) return;
             const h = await toHash(pass);
@@ -340,6 +347,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 adminMode = true;
                 localStorage.setItem('ec_admin', '1');
                 refreshAdminUI();
+                renderItems();
             } else {
                 alert('Incorrect passphrase.');
             }
