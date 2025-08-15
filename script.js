@@ -26,6 +26,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Tracks whether admin mode is active; when true, delete buttons are visible and deletion is allowed
     let adminMode = false;
 
+    // Items older than this number of days will be automatically removed to keep the catalogue fresh.
+    const ITEM_EXPIRY_DAYS = 60;
+
     /**
      * Compute the SHA‑256 hash of a string and return a hex string.  Uses Web Crypto API.
      * @param {string} text
@@ -93,6 +96,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Render functions
     function renderItems() {
+        // Remove expired items (older than ITEM_EXPIRY_DAYS) before rendering
+        const now = Date.now();
+        const expiryMs = ITEM_EXPIRY_DAYS * 24 * 60 * 60 * 1000;
+        let changed = false;
+        items = items.filter(it => {
+            if (!it.createdAt) return true;
+            const age = now - it.createdAt;
+            if (age > expiryMs) {
+                changed = true;
+                return false;
+            }
+            return true;
+        });
+        if (changed) {
+            saveData();
+        }
         itemsListEl.innerHTML = '';
         if (items.length === 0) {
             const empty = document.createElement('p');
@@ -166,6 +185,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 card.appendChild(lender);
                 if (bioSnippet) card.appendChild(bioP);
                 card.appendChild(ratingEl);
+            // Verified badge
+            if (item.verified) {
+                const badge = document.createElement('span');
+                badge.className = 'badge verified';
+                badge.textContent = 'Verified';
+                card.appendChild(badge);
+            }
             // Admin delete actions
             const adminRow = document.createElement('div');
             adminRow.className = 'admin-actions';
@@ -180,6 +206,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     saveData();
                     renderItems();
                     updateMetrics();
+                    renderAdminDashboard();
                 }
             });
             adminRow.appendChild(delBtn);
@@ -190,6 +217,74 @@ document.addEventListener('DOMContentLoaded', () => {
                 showContactModal(item.lenderName, item.lenderContact, item.lenderBio || '', item.lenderPhotoDataUrl || null);
             });
             itemsListEl.appendChild(card);
+        });
+    }
+
+    /**
+     * Render the admin dashboard table.  This view lists all items along with details and actions.
+     * Only visible in admin mode.
+     */
+    function renderAdminDashboard() {
+        const dash = document.getElementById('admin-dashboard');
+        const tbody = document.getElementById('admin-table-body');
+        if (!dash || !tbody) return;
+        if (!adminMode) {
+            dash.style.display = 'none';
+            return;
+        }
+        dash.style.display = 'block';
+        tbody.innerHTML = '';
+        items.forEach((item, idx) => {
+            const tr = document.createElement('tr');
+            const tdName = document.createElement('td');
+            tdName.textContent = item.name;
+            const tdCat = document.createElement('td');
+            tdCat.textContent = item.category;
+            const tdType = document.createElement('td');
+            tdType.textContent = item.type === 'lend' ? 'Borrow' : 'Free';
+            const tdLender = document.createElement('td');
+            tdLender.textContent = item.lenderName;
+            const tdDate = document.createElement('td');
+            const d = new Date(item.createdAt || Date.now());
+            tdDate.textContent = d.toLocaleDateString();
+            const tdVer = document.createElement('td');
+            tdVer.textContent = item.verified ? 'Yes' : 'No';
+            const tdAct = document.createElement('td');
+            // Delete button
+            const btnDel = document.createElement('button');
+            btnDel.textContent = 'Delete';
+            btnDel.addEventListener('click', () => {
+                if (!adminMode) return;
+                if (confirm(`Delete "${item.name}"? This cannot be undone.`)) {
+                    items.splice(idx, 1);
+                    saveData();
+                    renderItems();
+                    updateMetrics();
+                    renderAdminDashboard();
+                }
+            });
+            // Verify/unverify button
+            const btnVerify = document.createElement('button');
+            btnVerify.textContent = item.verified ? 'Unverify' : 'Verify';
+            btnVerify.style.marginLeft = '0.4rem';
+            btnVerify.addEventListener('click', () => {
+                if (!adminMode) return;
+                items[idx].verified = !items[idx].verified;
+                saveData();
+                renderItems();
+                updateMetrics();
+                renderAdminDashboard();
+            });
+            tdAct.appendChild(btnDel);
+            tdAct.appendChild(btnVerify);
+            tr.appendChild(tdName);
+            tr.appendChild(tdCat);
+            tr.appendChild(tdType);
+            tr.appendChild(tdLender);
+            tr.appendChild(tdDate);
+            tr.appendChild(tdVer);
+            tr.appendChild(tdAct);
+            tbody.appendChild(tr);
         });
     }
 
@@ -293,11 +388,13 @@ document.addEventListener('DOMContentLoaded', () => {
             lenderPhotoDataUrl,
             photoDataUrl,
             rating: 0,
-            createdAt: Date.now()
+            createdAt: Date.now(),
+            verified: false
         });
         saveData();
         renderItems();
         updateMetrics();
+        renderAdminDashboard();
         itemSuccess.textContent = 'Item added successfully!';
         itemForm.reset();
         setTimeout(() => { itemSuccess.textContent = ''; }, 3000);
@@ -329,6 +426,8 @@ document.addEventListener('DOMContentLoaded', () => {
     renderItems();
     renderRequests();
     updateMetrics();
+    // Render admin dashboard on load if admin mode is active
+    renderAdminDashboard();
 
     // Improved search filtering across multiple fields with debounce
     const searchInput = document.getElementById('search-input');
@@ -376,6 +475,8 @@ document.addEventListener('DOMContentLoaded', () => {
             adminToggle.classList.toggle('admin-on', adminMode);
             adminToggle.textContent = adminMode ? '🔓 Admin' : '🔒 Admin';
         }
+        // Show or hide dashboard accordingly
+        renderAdminDashboard();
     }
     // Restore admin mode from previous session if stored
     (function restoreAdmin() {

@@ -658,6 +658,79 @@ footer {
     color: #f5b301;
 }
 
+/* Admin dashboard table styles */
+.admin-dashboard {
+    margin-top: 2rem;
+    overflow-x: auto;
+}
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.admin-table th,
+.admin-table td {
+    padding: 0.5rem;
+    border-bottom: 1px solid #e0e0e0;
+    font-size: 0.9rem;
+    text-align: left;
+}
+.admin-table th {
+    background-color: var(--light-green);
+    color: var(--dark-green);
+    font-weight: 600;
+}
+.admin-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+.admin-table button {
+    padding: 0.3rem 0.6rem;
+    font-size: 0.8rem;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    color: var(--white);
+    background-color: var(--dark-green);
+    transition: background-color 0.2s ease;
+}
+.admin-table button:hover {
+    background-color: var(--green);
+}
+
+/* Verified badge styles */
+.badge {
+    display: inline-block;
+    padding: 0.15rem 0.45rem;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: bold;
+    color: var(--white);
+}
+.badge.verified {
+    background-color: var(--accent);
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 600px) {
+    .items-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.5rem;
+    }
+    .metrics {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .cards-list {
+        grid-template-columns: 1fr;
+    }
+    .rating .star {
+        font-size: 1.4rem;
+    }
+    .admin-table th,
+    .admin-table td {
+        font-size: 0.8rem;
+    }
+}
+
 /* Category filter dropdown styles */
 #category-filter-container {
     margin-left: 0.5rem;
