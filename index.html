@@ -170,6 +170,17 @@
                         <label for="lender-contact">Contact Info</label>
                         <input type="text" id="lender-contact" name="lender-contact" placeholder="Email or phone number" required>
                     </div>
+                    <!-- Optional bio for the lender -->
+                    <div class="form-row">
+                        <label for="lender-bio">Lender Bio</label>
+                        <textarea id="lender-bio" name="lender-bio" rows="2" placeholder="Tell us a bit about yourself (optional)"></textarea>
+                    </div>
+                    <!-- Optional profile photo upload for the lender -->
+                    <div class="form-row">
+                        <label for="lender-photo">Lender Photo (optional)</label>
+                        <input type="file" id="lender-photo" accept="image/*">
+                        <small>Upload a small portrait of the lender to build trust.</small>
+                    </div>
                     <div class="form-row">
                         <label for="item-category">Category</label>
                         <select id="item-category" name="item-category" required>
@@ -222,6 +233,18 @@
                 <div class="items-toolbar">
                     <div id="item-search">
                         <input type="text" id="search-input" placeholder="Search by name, description, lender, category…">
+                    </div>
+                    <!-- Category filter dropdown -->
+                    <div id="category-filter-container">
+                        <select id="category-filter">
+                            <option value="all" selected>All categories</option>
+                            <option value="Tools">Tools</option>
+                            <option value="Clothing">Clothing</option>
+                            <option value="Home">Home &amp; Kitchen</option>
+                            <option value="Outdoor">Outdoor &amp; Garden</option>
+                            <option value="Electronics">Electronics</option>
+                            <option value="Other">Other</option>
+                        </select>
                     </div>
                     <!-- Admin toggle button; shows lock/unlock state and only allows deletion when in admin mode -->
                     <button id="admin-toggle" class="admin-button" title="Toggle Admin Mode">🔒 Admin</button>

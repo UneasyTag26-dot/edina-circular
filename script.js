@@ -20,9 +20,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- CONFIGURATION ---
     // SHA‑256 hash of a secret phrase used to toggle admin mode.  Change this to your own hash by
     // computing the hash of your chosen passphrase (see README or prompt for instructions).
-    // Admin passphrase hash for "admin123".  To change the passphrase,
-    // replace this value with the SHA‑256 hash of your desired phrase.  The
-    // current hash corresponds to the passphrase "admin123".
+    // Use the same passphrase as the live site ("admin123") so you and Stellan can reuse the existing credentials.
+    // SHA‑256 hash of "admin123" (computed via Web Crypto API).
     const ADMIN_PASSPHRASE_HASH = '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9';
     // Tracks whether admin mode is active; when true, delete buttons are visible and deletion is allowed
     let adminMode = false;
@@ -118,7 +117,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 img.alt = `${item.name} photo`;
                 card.appendChild(img);
             }
-            // Title and chips
+                // Title and chips
             const title = document.createElement('h4');
             title.textContent = item.name;
             const typeChip = document.createElement('span');
@@ -127,16 +126,46 @@ document.addEventListener('DOMContentLoaded', () => {
             const categoryChip = document.createElement('span');
             categoryChip.className = 'chip';
             categoryChip.textContent = item.category;
-            const desc = document.createElement('p');
-            desc.textContent = item.description;
-            const lender = document.createElement('p');
-            lender.className = 'lender';
-            lender.textContent = `Lender: ${item.lenderName}`;
-            card.appendChild(title);
-            card.appendChild(typeChip);
-            card.appendChild(categoryChip);
-            card.appendChild(desc);
-            card.appendChild(lender);
+                const desc = document.createElement('p');
+                desc.textContent = item.description;
+                // Optional lender portrait
+                if (item.lenderPhotoDataUrl) {
+                    const lp = document.createElement('img');
+                    lp.className = 'lender-photo';
+                    lp.src = item.lenderPhotoDataUrl;
+                    lp.alt = `${item.lenderName} portrait`;
+                    card.appendChild(lp);
+                }
+                // Lender name and truncated bio (if provided)
+                const lender = document.createElement('p');
+                lender.className = 'lender';
+                lender.textContent = `Lender: ${item.lenderName}`;
+                let bioSnippet = '';
+                if (item.lenderBio) {
+                    bioSnippet = item.lenderBio.length > 120 ? item.lenderBio.slice(0, 120) + '…' : item.lenderBio;
+                }
+                const bioP = document.createElement('p');
+                if (bioSnippet) bioP.textContent = bioSnippet;
+                // Rating stars
+                const ratingEl = document.createElement('div');
+                ratingEl.className = 'rating';
+                for (let s = 1; s <= 5; s++) {
+                    const star = document.createElement('span');
+                    star.className = 'star' + (item.rating && item.rating >= s ? ' filled' : '');
+                    star.textContent = '★';
+                    star.addEventListener('click', (evt) => {
+                        evt.stopPropagation();
+                        setItemRating(idx, s);
+                    });
+                    ratingEl.appendChild(star);
+                }
+                card.appendChild(title);
+                card.appendChild(typeChip);
+                card.appendChild(categoryChip);
+                card.appendChild(desc);
+                card.appendChild(lender);
+                if (bioSnippet) card.appendChild(bioP);
+                card.appendChild(ratingEl);
             // Admin delete actions
             const adminRow = document.createElement('div');
             adminRow.className = 'admin-actions';
@@ -154,21 +183,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
             adminRow.appendChild(delBtn);
-            // Show or hide the admin actions row based on admin mode.  Without this, the
-            // delete button could appear even when adminMode is false if the CSS fails to hide it.
-            adminRow.style.display = adminMode ? 'block' : 'none';
             card.appendChild(adminRow);
             // Clicking on the card shows contact modal; ignore clicks on delete button
             card.addEventListener('click', (evt) => {
                 if (evt.target.closest('.delete-btn')) return;
-                showContactModal(item.lenderName, item.lenderContact);
+                showContactModal(item.lenderName, item.lenderContact, item.lenderBio || '', item.lenderPhotoDataUrl || null);
             });
             itemsListEl.appendChild(card);
         });
-        // Reapply current search filter after items are rendered.  Without this call,
-        // newly added or removed items would always show regardless of the current
-        // search query.  This ensures the list respects the active filter string.
-        filterCards();
     }
 
     function renderRequests() {
@@ -240,16 +262,39 @@ document.addEventListener('DOMContentLoaded', () => {
         const type = document.getElementById('item-type').value;
         const lenderName = document.getElementById('lender-name').value.trim();
         const lenderContact = document.getElementById('lender-contact').value.trim();
+        const lenderBio = document.getElementById('lender-bio')?.value.trim() || '';
+        const lenderPhotoFile = document.getElementById('lender-photo')?.files?.[0] || null;
         const photoFile = document.getElementById('item-photo')?.files?.[0] || null;
+        // Basic validation: require key fields
         if (!name || !category || !description || !type || !lenderName || !lenderContact) return;
+        // Compress optional images
         let photoDataUrl = null;
+        let lenderPhotoDataUrl = null;
         try {
             photoDataUrl = await fileToDataUrlCompressed(photoFile);
         } catch (err) {
-            console.warn('Photo compression failed', err);
+            console.warn('Item photo compression failed', err);
+        }
+        try {
+            lenderPhotoDataUrl = await fileToDataUrlCompressed(lenderPhotoFile, 600, 0.8);
+        } catch (err) {
+            console.warn('Lender photo compression failed', err);
         }
         const id = Date.now().toString();
-        items.push({ id, name, category, description, type, lenderName, lenderContact, photoDataUrl, createdAt: Date.now() });
+        items.push({
+            id,
+            name,
+            category,
+            description,
+            type,
+            lenderName,
+            lenderContact,
+            lenderBio,
+            lenderPhotoDataUrl,
+            photoDataUrl,
+            rating: 0,
+            createdAt: Date.now()
+        });
         saveData();
         renderItems();
         updateMetrics();
@@ -289,6 +334,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const searchInput = document.getElementById('search-input');
     function filterCards() {
         const q = (searchInput?.value || '').trim().toLowerCase();
+        const filterVal = (document.getElementById('category-filter')?.value || 'all').toLowerCase();
         const cards = itemsListEl.querySelectorAll('.card');
         cards.forEach(card => {
             const haystack = [
@@ -298,7 +344,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 card.dataset.lender,
                 card.dataset.description
             ].join(' ');
-            card.style.display = haystack.includes(q) ? '' : 'none';
+            const matchesSearch = haystack.includes(q);
+            const matchesCategory = filterVal === 'all' || card.dataset.category === filterVal.toLowerCase();
+            card.style.display = (matchesSearch && matchesCategory) ? '' : 'none';
         });
     }
     let searchTimer = null;
@@ -306,6 +354,14 @@ document.addEventListener('DOMContentLoaded', () => {
         searchInput.addEventListener('input', () => {
             clearTimeout(searchTimer);
             searchTimer = setTimeout(filterCards, 180);
+        });
+    }
+
+    // Category filter change triggers card filtering
+    const categoryFilterEl = document.getElementById('category-filter');
+    if (categoryFilterEl) {
+        categoryFilterEl.addEventListener('change', () => {
+            filterCards();
         });
     }
 
@@ -330,16 +386,12 @@ document.addEventListener('DOMContentLoaded', () => {
     })();
     if (adminToggle) {
         adminToggle.addEventListener('click', async () => {
-            // Toggling admin mode off
             if (adminMode) {
                 adminMode = false;
                 localStorage.removeItem('ec_admin');
                 refreshAdminUI();
-                // Re-render items so that admin delete buttons hide immediately
-                renderItems();
                 return;
             }
-            // Prompt for passphrase when turning admin mode on
             const pass = prompt('Enter admin passphrase:');
             if (!pass) return;
             const h = await toHash(pass);
@@ -347,7 +399,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 adminMode = true;
                 localStorage.setItem('ec_admin', '1');
                 refreshAdminUI();
-                renderItems();
             } else {
                 alert('Incorrect passphrase.');
             }
@@ -383,6 +434,20 @@ document.addEventListener('DOMContentLoaded', () => {
         setMetric('metric-matches', matchCount);
     }
 
+    /**
+     * Set the rating for a given item by index. Updates the stored list and re-renders
+     * the items and metrics. Rating values range from 1 (lowest) to 5 (highest).
+     * @param {number} index
+     * @param {number} rating
+     */
+    function setItemRating(index, rating) {
+        if (!items[index]) return;
+        items[index].rating = rating;
+        saveData();
+        renderItems();
+        updateMetrics();
+    }
+
     // Modal logic for displaying lender contact information
     const contactModal = document.getElementById('contact-modal');
     const closeModalBtn = document.getElementById('close-modal');
@@ -392,9 +457,33 @@ document.addEventListener('DOMContentLoaded', () => {
      * @param {string} lenderName
      * @param {string} lenderContact
      */
-    function showContactModal(lenderName, lenderContact) {
+    function showContactModal(lenderName, lenderContact, lenderBio = '', lenderPhotoDataUrl = null) {
         if (!contactModal || !contactInfoEl) return;
-        contactInfoEl.textContent = `${lenderName} can be reached at: ${lenderContact}`;
+        // Clear existing content
+        contactInfoEl.innerHTML = '';
+        // Optional photo
+        if (lenderPhotoDataUrl) {
+            const img = document.createElement('img');
+            img.src = lenderPhotoDataUrl;
+            img.alt = `${lenderName} portrait`;
+            img.style.width = '80px';
+            img.style.height = '80px';
+            img.style.borderRadius = '50%';
+            img.style.objectFit = 'cover';
+            img.style.marginBottom = '0.5rem';
+            contactInfoEl.appendChild(img);
+        }
+        const nameEl = document.createElement('strong');
+        nameEl.textContent = lenderName;
+        contactInfoEl.appendChild(nameEl);
+        const contactP = document.createElement('p');
+        contactP.textContent = `Contact: ${lenderContact}`;
+        contactInfoEl.appendChild(contactP);
+        if (lenderBio) {
+            const bioP = document.createElement('p');
+            bioP.textContent = lenderBio;
+            contactInfoEl.appendChild(bioP);
+        }
         contactModal.style.display = 'flex';
     }
     // Make the modal closing functionality accessible globally
