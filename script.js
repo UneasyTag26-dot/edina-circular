@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
         navList.classList.toggle('open');
     });
 
-    // Data arrays loaded from localStorage if present
+    // Data arrays.  These will be populated from the backend on page load.
     let items = [];
     let requests = [];
     let volunteers = [];
@@ -84,6 +84,42 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (err) {
         console.warn('Could not parse stored data:', err);
     }
+
+    // -------------------------------------------------------------------------
+    // Backend integration
+    // -------------------------------------------------------------------------
+    // Base URL for the backend API.  When running locally this points at the
+    // Express server (see backend/server.js).  Change this to your deployed
+    // backend endpoint if necessary.
+    const API_BASE = 'http://localhost:3000';
+
+    /**
+     * Load items and requests from the backend.  On success this will
+     * overwrite the local items/requests arrays and trigger a re-render.
+     */
+    async function loadFromBackend() {
+        try {
+            const [itemsRes, reqRes] = await Promise.all([
+                fetch(`${API_BASE}/items`),
+                fetch(`${API_BASE}/requests`)
+            ]);
+            if (itemsRes.ok) {
+                items = await itemsRes.json();
+            }
+            if (reqRes.ok) {
+                requests = await reqRes.json();
+            }
+            // Save to localStorage for offline fallback
+            saveData();
+            renderItems();
+            renderRequests();
+            updateMetrics();
+            renderAdminDashboard();
+        } catch (err) {
+            console.warn('Failed to fetch backend data:', err);
+        }
+    }
+
 
     const itemsListEl = document.getElementById('items-list');
     const requestsListEl = document.getElementById('requests-list');
@@ -198,11 +234,18 @@ document.addEventListener('DOMContentLoaded', () => {
             const delBtn = document.createElement('button');
             delBtn.className = 'delete-btn';
             delBtn.textContent = 'Delete';
-            delBtn.addEventListener('click', (e) => {
+            delBtn.addEventListener('click', async (e) => {
                 e.stopPropagation();
                 if (!adminMode) return;
                 if (confirm(`Delete "${item.name}"? This cannot be undone.`)) {
-                    items.splice(idx, 1);
+                    try {
+                        // Attempt to delete via backend
+                        await fetch(`${API_BASE}/items/${item.id}`, { method: 'DELETE' });
+                    } catch (err) {
+                        console.warn('Failed to delete item via backend:', err);
+                    }
+                    // Remove locally regardless of backend result
+                    items = items.filter(it => it.id !== item.id);
                     saveData();
                     renderItems();
                     updateMetrics();
@@ -253,10 +296,15 @@ document.addEventListener('DOMContentLoaded', () => {
             // Delete button
             const btnDel = document.createElement('button');
             btnDel.textContent = 'Delete';
-            btnDel.addEventListener('click', () => {
+            btnDel.addEventListener('click', async () => {
                 if (!adminMode) return;
                 if (confirm(`Delete "${item.name}"? This cannot be undone.`)) {
-                    items.splice(idx, 1);
+                    try {
+                        await fetch(`${API_BASE}/items/${item.id}`, { method: 'DELETE' });
+                    } catch (err) {
+                        console.warn('Failed to delete item via backend:', err);
+                    }
+                    items = items.filter(it => it.id !== item.id);
                     saveData();
                     renderItems();
                     updateMetrics();
@@ -317,9 +365,20 @@ document.addEventListener('DOMContentLoaded', () => {
             if (req.matches && req.matches.length > 0) {
                 const matchEl = document.createElement('p');
                 matchEl.className = 'match';
-                const first = items[req.matches[0]];
-                matchEl.textContent = `Suggested item: ${first.name} (${first.category})`;
-                card.appendChild(matchEl);
+                // Determine the first matching item.  If matches are stored as
+                // indices into the items array, use that.  Otherwise if they are
+                // item IDs (strings), find the corresponding item by ID.
+                let matchItem = null;
+                const firstMatch = req.matches[0];
+                if (typeof firstMatch === 'number') {
+                    matchItem = items[firstMatch];
+                } else if (typeof firstMatch === 'string') {
+                    matchItem = items.find(it => it.id === firstMatch);
+                }
+                if (matchItem) {
+                    matchEl.textContent = `Suggested item: ${matchItem.name} (${matchItem.category})`;
+                    card.appendChild(matchEl);
+                }
             }
             requestsListEl.appendChild(card);
         });
@@ -375,9 +434,10 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (err) {
             console.warn('Lender photo compression failed', err);
         }
-        const id = Date.now().toString();
-        items.push({
-            id,
+        // Build an item object.  'createdAt' is included so that expiry logic
+        // still functions when rendering locally.  The server will assign its
+        // own id.
+        const newItem = {
             name,
             category,
             description,
@@ -390,7 +450,28 @@ document.addEventListener('DOMContentLoaded', () => {
             rating: 0,
             createdAt: Date.now(),
             verified: false
-        });
+        };
+        try {
+            // Persist to backend
+            const resp = await fetch(`${API_BASE}/items`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newItem)
+            });
+            if (resp.ok) {
+                const saved = await resp.json();
+                items.push(saved);
+            } else {
+                // If backend call fails, fall back to local addition
+                console.warn('Backend failed to save item, falling back to local.');
+                newItem.id = Date.now().toString();
+                items.push(newItem);
+            }
+        } catch (err) {
+            console.warn('Error saving item to backend:', err);
+            newItem.id = Date.now().toString();
+            items.push(newItem);
+        }
         saveData();
         renderItems();
         updateMetrics();
@@ -401,7 +482,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     const requestForm = document.getElementById('request-form');
-    requestForm.addEventListener('submit', (e) => {
+    /**
+     * Submit a new borrowing request.  The request is persisted to the backend and
+     * matched against existing items via the /match endpoint.  The returned
+     * matches are converted to indices into the current items array.  If the
+     * backend is unreachable the request is stored locally and simple
+     * matching is performed on the client.
+     */
+    requestForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const name = document.getElementById('request-name').value.trim();
         const category = document.getElementById('request-category').value;
@@ -410,8 +498,44 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!name || !category || !duration || !description) return;
         const id = Date.now().toString();
         const reqObj = { id, name, category, duration, description };
-        // Compute matches via simple AI (string match & category)
-        const matches = findMatches(reqObj);
+        let matches = [];
+        // Attempt to persist to backend and get matches
+        try {
+            // Save request to backend
+            const saveResp = await fetch(`${API_BASE}/requests`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(reqObj)
+            });
+            if (!saveResp.ok) {
+                console.warn('Backend failed to save request');
+            }
+            // Call match endpoint to get matching items by name/category
+            const matchResp = await fetch(`${API_BASE}/match`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, category })
+            });
+            if (matchResp.ok) {
+                const matchItems = await matchResp.json();
+                // Convert matched item IDs into indices in the current items array
+                matches = matchItems.map(matchItem => {
+                    // Some backends may return objects with id property; if so, map to index
+                    if (typeof matchItem === 'string') {
+                        const idx = items.findIndex(it => it.id === matchItem);
+                        return idx >= 0 ? idx : null;
+                    } else if (matchItem && matchItem.id) {
+                        const idx = items.findIndex(it => it.id === matchItem.id);
+                        return idx >= 0 ? idx : null;
+                    }
+                    return null;
+                }).filter(idx => idx !== null);
+            }
+        } catch (err) {
+            console.warn('Failed to reach backend for requests/matching:', err);
+            // Fallback: perform simple local matching
+            matches = findMatches(reqObj);
+        }
         reqObj.matches = matches;
         requests.push(reqObj);
         saveData();
@@ -542,11 +666,27 @@ document.addEventListener('DOMContentLoaded', () => {
      * @param {number} rating
      */
     function setItemRating(index, rating) {
-        if (!items[index]) return;
-        items[index].rating = rating;
-        saveData();
-        renderItems();
-        updateMetrics();
+        const item = items[index];
+        if (!item) return;
+        // Update via backend
+        (async () => {
+            try {
+                await fetch(`${API_BASE}/ratings/${item.id}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ rating })
+                });
+                // Refresh items from backend to get updated averages
+                await loadFromBackend();
+            } catch (err) {
+                console.warn('Failed to save rating to backend:', err);
+                // Fallback: update local rating only
+                item.rating = rating;
+                saveData();
+                renderItems();
+                updateMetrics();
+            }
+        })();
     }
 
     // Modal logic for displaying lender contact information
@@ -599,6 +739,12 @@ document.addEventListener('DOMContentLoaded', () => {
             contactModal.style.display = 'none';
         }
     });
+
+    // On initial load fetch items and requests from the backend.  If the
+    // backend is unreachable the UI will fall back to any data in
+    // localStorage.  The call is asynchronous and will update the UI
+    // once complete.
+    loadFromBackend();
 
     // Volunteer form handler
     const volForm = document.getElementById('volunteer-form');
