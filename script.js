@@ -91,7 +91,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Base URL for the backend API.  When running locally this points at the
     // Express server (see backend/server.js).  Change this to your deployed
     // backend endpoint if necessary.
-    const API_BASE = 'http://localhost:3000';
+// Base URL for the backend API. When running locally this points at the local Express server.
+// In production the frontend should point at the deployed Render backend.
+const API_BASE = 'https://edina-circular-backend.onrender.com';
 
     /**
      * Load items and requests from the backend.  On success this will
