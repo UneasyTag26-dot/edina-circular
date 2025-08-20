@@ -442,6 +442,32 @@ const API_BASE = 'https://edina-circular-backend.onrender.com';
             card.appendChild(categoryChip);
             card.appendChild(durationChip);
             card.appendChild(desc);
+            // If admin mode, show a delete button to remove this request
+            if (adminMode) {
+                const adminReqRow = document.createElement('div');
+                adminReqRow.className = 'admin-actions';
+                const delReqBtn = document.createElement('button');
+                delReqBtn.className = 'delete-btn';
+                delReqBtn.textContent = 'Delete';
+                delReqBtn.addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    if (!adminMode) return;
+                    if (confirm(`Delete request "${req.name}"? This cannot be undone.`)) {
+                        try {
+                            await fetch(`${API_BASE}/requests/${req.id}`, { method: 'DELETE' });
+                        } catch (err) {
+                            console.warn('Failed to delete request via backend:', err);
+                        }
+                        // Remove from local array regardless of backend result
+                        requests = requests.filter(r => r.id !== req.id);
+                        saveData();
+                        renderRequests();
+                        updateMetrics();
+                    }
+                });
+                adminReqRow.appendChild(delReqBtn);
+                card.appendChild(adminReqRow);
+            }
             // Match results
             if (req.matches && req.matches.length > 0) {
                 const matchEl = document.createElement('p');
