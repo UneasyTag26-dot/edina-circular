@@ -29,7 +29,8 @@ function loadData() {
     const raw = fs.readFileSync(dataFile, 'utf8');
     return JSON.parse(raw);
   } catch (err) {
-    return { items: [], requests: [], ratings: [] };
+    // Add a users array for simple authentication/profile support
+    return { items: [], requests: [], ratings: [], users: [] };
   }
 }
 
@@ -41,6 +42,11 @@ function saveData(data) {
 app.get('/items', (req, res) => {
   const data = loadData();
   res.json(data.items);
+});
+
+// Health check/root route
+app.get('/', (req, res) => {
+  res.send('Edina Circular API is running.');
 });
 
 // POST /items – create a new item
@@ -117,6 +123,55 @@ app.post('/ratings/:itemId', (req, res) => {
   });
   saveData(data);
   res.json({ success: true, avg, count: ratingsForItem.length });
+});
+
+// -------------------- User and authentication routes --------------------
+
+// GET /users – return all users (without passwords). For administration/testing.
+app.get('/users', (req, res) => {
+  const data = loadData();
+  // Never expose passwords
+  const sanitized = data.users.map(u => ({ id: u.id, email: u.email, name: u.name, contact: u.contact, bio: u.bio }));
+  res.json(sanitized);
+});
+
+// POST /users – register a new user. Expected body: { email, password, name, contact, bio }
+app.post('/users', (req, res) => {
+  const { email, password, name, contact, bio } = req.body;
+  if (!email || !password || !name) {
+    return res.status(400).json({ error: 'Email, password and name are required' });
+  }
+  const data = loadData();
+  // Check if email already registered
+  if (data.users.some(u => u.email === email)) {
+    return res.status(409).json({ error: 'Email already registered' });
+  }
+  const user = {
+    id: Date.now().toString(),
+    email,
+    password, // NOTE: In production, never store plain passwords. Use a hash.
+    name,
+    contact: contact || '',
+    bio: bio || ''
+  };
+  data.users.push(user);
+  saveData(data);
+  // Return user without password
+  const { password: pw, ...safeUser } = user;
+  res.status(201).json(safeUser);
+});
+
+// POST /login – log a user in. Body: { email, password }
+app.post('/login', (req, res) => {
+  const { email, password } = req.body;
+  const data = loadData();
+  const user = data.users.find(u => u.email === email && u.password === password);
+  if (!user) {
+    return res.status(401).json({ error: 'Invalid credentials' });
+  }
+  // Return user without password
+  const { password: pw, ...safeUser } = user;
+  res.json(safeUser);
 });
 
 // Start the server
