@@ -17,6 +17,10 @@ document.addEventListener('DOMContentLoaded', () => {
     let volunteers = [];
     let donations = [];
 
+    // Track the currently logged in user (if any).  Users are persisted in
+    // localStorage under the key 'ec_current_user'.  See loadCurrentUser().
+    let currentUser = null;
+
     // --- CONFIGURATION ---
     // SHA‑256 hash of a secret phrase used to toggle admin mode.  Change this to your own hash by
     // computing the hash of your chosen passphrase (see README or prompt for instructions).
@@ -83,6 +87,81 @@ document.addEventListener('DOMContentLoaded', () => {
         if (savedDon) donations = JSON.parse(savedDon);
     } catch (err) {
         console.warn('Could not parse stored data:', err);
+    }
+
+    // Load current user from localStorage
+    function loadCurrentUser() {
+        try {
+            const savedUser = localStorage.getItem('ec_current_user');
+            if (savedUser) {
+                currentUser = JSON.parse(savedUser);
+            }
+        } catch (err) {
+            console.warn('Could not parse saved user', err);
+            currentUser = null;
+        }
+        updateAuthUI();
+    }
+
+    // Show/hide auth forms based on user state and prefill lender fields
+    function updateAuthUI() {
+        const regFormBlock = document.getElementById('register-form');
+        const loginFormBlock = document.getElementById('login-form');
+        const userInfoBlock = document.getElementById('user-info');
+        const userNameDisplay = document.getElementById('user-name-display');
+        const lenderNameRow = document.getElementById('lender-name')?.closest('.form-row');
+        const lenderContactRow = document.getElementById('lender-contact')?.closest('.form-row');
+        const lenderBioRow = document.getElementById('lender-bio')?.closest('.form-row');
+        const lenderPhotoRow = document.getElementById('lender-photo')?.closest('.form-row');
+        if (!regFormBlock || !loginFormBlock || !userInfoBlock) return;
+        if (currentUser) {
+            // Hide auth forms, show welcome
+            regFormBlock.style.display = 'none';
+            loginFormBlock.style.display = 'none';
+            userInfoBlock.style.display = 'block';
+            if (userNameDisplay) userNameDisplay.textContent = currentUser.name || '';
+            // Prefill item form and hide lender details
+            if (document.getElementById('lender-name')) {
+                document.getElementById('lender-name').value = currentUser.name || '';
+            }
+            if (document.getElementById('lender-contact')) {
+                document.getElementById('lender-contact').value = currentUser.contact || '';
+            }
+            if (document.getElementById('lender-bio')) {
+                document.getElementById('lender-bio').value = currentUser.bio || '';
+            }
+            if (lenderNameRow) lenderNameRow.style.display = 'none';
+            if (lenderContactRow) lenderContactRow.style.display = 'none';
+            if (lenderBioRow) lenderBioRow.style.display = 'none';
+            if (lenderPhotoRow) lenderPhotoRow.style.display = 'none';
+        } else {
+            // Show auth forms
+            regFormBlock.style.display = 'block';
+            loginFormBlock.style.display = 'block';
+            userInfoBlock.style.display = 'none';
+            // Show lender fields
+            if (lenderNameRow) lenderNameRow.style.display = '';
+            if (lenderContactRow) lenderContactRow.style.display = '';
+            if (lenderBioRow) lenderBioRow.style.display = '';
+            if (lenderPhotoRow) lenderPhotoRow.style.display = '';
+            // Clear form values
+            if (document.getElementById('lender-name')) document.getElementById('lender-name').value = '';
+            if (document.getElementById('lender-contact')) document.getElementById('lender-contact').value = '';
+            if (document.getElementById('lender-bio')) document.getElementById('lender-bio').value = '';
+        }
+    }
+
+    // Display message in auth section
+    function showAuthMessage(msg, isError = false) {
+        const msgEl = document.getElementById('auth-message');
+        if (msgEl) {
+            msgEl.textContent = msg;
+            msgEl.style.display = 'block';
+            msgEl.style.color = isError ? 'var(--error-red)' : 'var(--dark-green)';
+            setTimeout(() => {
+                msgEl.style.display = 'none';
+            }, 5000);
+        }
     }
 
     // -------------------------------------------------------------------------
@@ -416,9 +495,10 @@ const API_BASE = 'https://edina-circular-backend.onrender.com';
         const category = document.getElementById('item-category').value;
         const description = document.getElementById('item-description').value.trim();
         const type = document.getElementById('item-type').value;
-        const lenderName = document.getElementById('lender-name').value.trim();
-        const lenderContact = document.getElementById('lender-contact').value.trim();
-        const lenderBio = document.getElementById('lender-bio')?.value.trim() || '';
+        // Use currentUser details if logged in, otherwise read from form
+        const lenderName = currentUser ? (currentUser.name || '') : document.getElementById('lender-name').value.trim();
+        const lenderContact = currentUser ? (currentUser.contact || '') : document.getElementById('lender-contact').value.trim();
+        const lenderBio = currentUser ? (currentUser.bio || '') : (document.getElementById('lender-bio')?.value.trim() || '');
         const lenderPhotoFile = document.getElementById('lender-photo')?.files?.[0] || null;
         const photoFile = document.getElementById('item-photo')?.files?.[0] || null;
         // Basic validation: require key fields
@@ -787,6 +867,91 @@ const API_BASE = 'https://edina-circular-backend.onrender.com';
                 setTimeout(() => { donSuccess.textContent = ''; }, 4000);
             }
             donForm.reset();
+        });
+    }
+
+    // Load current user from localStorage and update UI
+    loadCurrentUser();
+
+    // User registration handler
+    const signUpForm = document.getElementById('sign-up-form');
+    if (signUpForm) {
+        signUpForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('signup-email').value.trim();
+            const password = document.getElementById('signup-password').value.trim();
+            const name = document.getElementById('signup-name').value.trim();
+            const contact = document.getElementById('signup-contact').value.trim();
+            const bio = document.getElementById('signup-bio').value.trim();
+            if (!email || !password || !name || !contact) {
+                showAuthMessage('Please fill in all required fields', true);
+                return;
+            }
+            try {
+                const res = await fetch(`${API_BASE}/users`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password, name, contact, bio })
+                });
+                if (res.ok) {
+                    const user = await res.json();
+                    currentUser = user;
+                    localStorage.setItem('ec_current_user', JSON.stringify(user));
+                    updateAuthUI();
+                    showAuthMessage('Account created. You are now logged in.');
+                } else {
+                    const err = await res.json();
+                    showAuthMessage(err.error || 'Sign up failed', true);
+                }
+            } catch (err) {
+                showAuthMessage('Sign up failed. Please try again.', true);
+            }
+            signUpForm.reset();
+        });
+    }
+
+    // User login handler
+    const signInForm = document.getElementById('sign-in-form');
+    if (signInForm) {
+        signInForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value.trim();
+            const password = document.getElementById('login-password').value.trim();
+            if (!email || !password) {
+                showAuthMessage('Please provide email and password', true);
+                return;
+            }
+            try {
+                const res = await fetch(`${API_BASE}/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                if (res.ok) {
+                    const user = await res.json();
+                    currentUser = user;
+                    localStorage.setItem('ec_current_user', JSON.stringify(user));
+                    updateAuthUI();
+                    showAuthMessage('Logged in successfully.');
+                } else {
+                    const err = await res.json();
+                    showAuthMessage(err.error || 'Login failed', true);
+                }
+            } catch (err) {
+                showAuthMessage('Login failed. Please try again.', true);
+            }
+            signInForm.reset();
+        });
+    }
+
+    // Logout handler
+    const logoutBtn = document.getElementById('logout-button');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', () => {
+            currentUser = null;
+            localStorage.removeItem('ec_current_user');
+            updateAuthUI();
+            showAuthMessage('You have been logged out.');
         });
     }
 });

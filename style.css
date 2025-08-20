@@ -522,6 +522,44 @@ footer {
     color: var(--dark-green);
 }
 
+/* Account / auth section */
+.auth-section {
+    background: var(--lightest-green);
+    padding: 2rem 0;
+}
+
+.auth-block {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    border: 1px solid var(--light-green);
+    border-radius: 10px;
+    background: var(--white);
+}
+
+.auth-block h3 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    color: var(--dark-green);
+}
+
+.auth-block .form-row {
+    margin-bottom: 1rem;
+}
+
+.auth-block .button {
+    display: inline-block;
+    background: var(--dark-green);
+    color: var(--white);
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.auth-block .button:hover {
+    background: var(--green);
+}
+
 /*
  * Dashboard metrics and admin controls for the items catalogue
  * These elements provide a quick overview of the number of items, requests and matches

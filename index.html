@@ -29,6 +29,8 @@
                     <li><a href="#share-borrow">Share&nbsp;&amp;&nbsp;Borrow</a></li>
                     <li><a href="#guidelines">Guidelines</a></li>
                     <li><a href="#contact">Contact</a></li>
+                    <!-- Link to account section for registration/login -->
+                    <li><a href="#auth">Account</a></li>
                 </ul>
             </nav>
             <!-- Hamburger menu for small screens -->
@@ -451,6 +453,65 @@
                 cannot be held responsible for any damage, injury or loss resulting from the use of items borrowed through this program.</p>
             </div>
         </section>
+
+        <!-- Account section for registration and login -->
+        <section id="auth" class="section auth-section">
+            <div class="container">
+                <h2>Your Account</h2>
+                <div id="auth-forms">
+                    <!-- Registration block -->
+                    <div id="register-form" class="auth-block">
+                        <h3>Create Account</h3>
+                        <form id="sign-up-form">
+                            <div class="form-row">
+                                <label for="signup-email">Email</label>
+                                <input type="email" id="signup-email" name="signup-email" required>
+                            </div>
+                            <div class="form-row">
+                                <label for="signup-password">Password</label>
+                                <input type="password" id="signup-password" name="signup-password" required>
+                            </div>
+                            <div class="form-row">
+                                <label for="signup-name">Name</label>
+                                <input type="text" id="signup-name" name="signup-name" required>
+                            </div>
+                            <div class="form-row">
+                                <label for="signup-contact">Contact Info</label>
+                                <input type="text" id="signup-contact" name="signup-contact" required>
+                            </div>
+                            <div class="form-row">
+                                <label for="signup-bio">Short Bio</label>
+                                <textarea id="signup-bio" name="signup-bio" rows="2" placeholder="Tell us about yourself"></textarea>
+                            </div>
+                            <button type="submit" class="button">Sign Up</button>
+                        </form>
+                    </div>
+                    <!-- Login block -->
+                    <div id="login-form" class="auth-block">
+                        <h3>Log In</h3>
+                        <form id="sign-in-form">
+                            <div class="form-row">
+                                <label for="login-email">Email</label>
+                                <input type="email" id="login-email" name="login-email" required>
+                            </div>
+                            <div class="form-row">
+                                <label for="login-password">Password</label>
+                                <input type="password" id="login-password" name="login-password" required>
+                            </div>
+                            <button type="submit" class="button">Log In</button>
+                        </form>
+                    </div>
+                    <!-- User info block (shown when logged in) -->
+                    <div id="user-info" class="auth-block" style="display:none;">
+                        <h3>Welcome, <span id="user-name-display"></span>!</h3>
+                        <p>You are signed in and your information will auto‑populate when sharing items.</p>
+                        <button id="logout-button" class="button">Log Out</button>
+                    </div>
+                </div>
+                <p id="auth-message" class="success-message" style="display:none;"></p>
+            </div>
+        </section>
+
 
         <!-- Contact section with general information -->
         <section id="contact" class="section contact-section">
