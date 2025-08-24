@@ -87,6 +87,18 @@ app.post('/requests', (req, res) => {
   res.status(201).json(request);
 });
 
+// DELETE /requests/:id – delete a request by ID
+app.delete('/requests/:id', (req, res) => {
+  const data = loadData();
+  const id = req.params.id;
+  const countBefore = data.requests.length;
+  // Remove the request with matching id
+  data.requests = data.requests.filter((request) => request.id !== id);
+  saveData(data);
+  const deleted = data.requests.length < countBefore;
+  res.json({ success: deleted });
+});
+
 // Simple matching endpoint: given a request name or category return matching items
 app.post('/match', (req, res) => {
   const { name, category } = req.body;
