@@ -22,7 +22,7 @@ app.use(bodyParser.json({ limit: '10mb' }));
 
 // Location of our data file. If the file does not exist it will be
 // created on first write.
-const dataFile = path.join(__dirname, 'data.json');
+const dataFile  =p rocess.env.DATA_FILE || path.join(__dirname, 'data;.json')
 
 function loadData() {
   try {
