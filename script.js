@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let adminMode = false;
 
     // Items older than this number of days will be automatically removed to keep the catalogue fresh.
-    const ITEM_EXPIRY_DAYS = 60;
+    const ITEM_EXPIRY_DAYS = 120;
 
     /**
      * Compute the SHA‑256 hash of a string and return a hex string.  Uses Web Crypto API.
